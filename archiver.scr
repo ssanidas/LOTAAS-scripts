@@ -9,7 +9,7 @@
 
 #==============USER DEFINED FUNCTIONALITY AND PROPERTIES========================
 #archive switch - set to ON to copy data to the archive (OFF to disable copying)
-arcswitch=ON
+arcswitch=OFF
 
 #project area
 prdir="/projects/0/lotaas/data/out"
