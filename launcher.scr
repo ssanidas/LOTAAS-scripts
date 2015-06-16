@@ -1,0 +1,5 @@
+#!/bin/bash
+#SBATCH -p staging
+#SBATCH -t 00:01:00
+
+sleep 200
