@@ -1,15 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 
 #This scripts archives a processed observation.
 #Properties:
 #1)Creates the requested tarballs and their logs and stores them in the project area
-#2)Copies the data to the tape archive
+#2)Creates the md5 checksums for each tarball and stores the in TarLog/mdsumslog
+#3)Copies the data to the tape archive
 
 
 
 #==============USER DEFINED FUNCTIONALITY AND PROPERTIES========================
 #archive switch - set to ON to copy data to the archive (OFF to disable copying)
-arcswitch=ON
+arcswitch=OFF
+
+#overwriting switch - set to ON in order to overwrite the previous tarballs and entries when archiving a pointing
+owswitch=ON
 
 #project area
 prdir="/projects/0/lotaas/data/out"
@@ -63,6 +67,15 @@ arctime=`date -u|awk '{print $4}'|sed 's/://g'`
 
 #current directory (the same level as the observation's directory)
 curdir=`pwd`
+#content of curdir
+curdircon=`ls $curdir`
+if [[ $curdircon == *$2* ]];then
+    echo "Archiving initiated..."
+    else
+    echo "This script must be executed in the same directory with the pointing to be archived."
+    echo "Either the pointing is not present or you are not in the same directory. Exiting..."
+    exit
+fi
 
 #archiving 
 if [ "$3" == "sap0" ];then
@@ -71,6 +84,20 @@ if [ "$3" == "sap0" ];then
     chown :lotaas $2"_SAP0-"$arcdate-$arctime.tar
     chmod g+w $2"_SAP0-"$arcdate-$arctime.tar
     tar -tvf $2"_SAP0-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP0-"$arcdate-$arctime.log
+    if [ "$owswitch" == "ON" ];then
+	#remove old TarLog entries
+	tarlogentries=`ls $prdir/TarLog|grep $2"_SAP0"`
+	sed -i '/'"$tarlogentries"'/d' $prdir/TarLog/mdsumslog
+	mdlog=`cat $prdir/TarLog/mdsumslog`
+        if [[ $mdlog == *$2"_SAP0"* ]];then
+	    echo "An entry in the mdsumslog for $2""_SAP0 exists. Overwriting with new one."
+	sed -i '/'"$2""_SAP0"'/d' $prdir/TarLog/mdsumslog
+	md5sum $2"_SAP0-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
+	echo "$prdir/TarLog/mdsumslog updated."
+	else
+	md5sum $2"_SAP0-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
+	echo "$prdir/TarLog/mdsumslog updated."
+    fi	
     mv $2"_SAP0-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_SAP0-"$arcdate-$arctime.tar $arcdir/
