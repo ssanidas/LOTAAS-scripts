@@ -1,0 +1,167 @@
+#!/bin/sh
+
+#This scripts archives a processed observation.
+#Properties:
+#1)Creates the requested tarballs and their logs and stores them in the project area
+#2)Copies the data to the tape archive
+
+
+
+#==============USER DEFINED FUNCTIONALITY AND PROPERTIES========================
+#archive switch - set to ON to copy data to the archive (OFF to disable copying)
+arcswitch=ON
+
+#project area
+prdir="/projects/0/lotaas/data/out"
+
+#defining the archive directory
+if [ "$1" == "obs" ];then
+    arcdir="/archive/pulsar/lotaas/out_tarballs"                                                                    
+    prefix=""
+    elif [ "$1" == "conf" ];then
+    arcdir="/archive/pulsar/lotaas/confirmations_tarballs"                                                          
+    prefix="confirmations_"
+    else
+    echo "This script archives observations or confirmations, creating the tarballs and copying them to /archive"
+    echo ""
+    echo "Usage:archiver.scr <mode> <observation> <content>"
+    echo "mode: obs, conf"
+    echo "observation: the observation to be archived (relative path)"
+    echo "content: sap0, sap1, sap2, sp, meta, or leav empty for everything"
+    exit
+fi
+#===============================================================================
+
+if [ $# -ne 2 ] && [ $# -ne 3 ];then
+    echo "This script archives observations or confirmations, creating the tarballs and copying them to /archive"
+    echo ""
+    echo "Usage:archiver.scr <mode> <observation> <content>"
+    echo "mode: obs, conf"
+    echo "observation: the observation to be archived (relative path)"
+    echo "content: sap0, sap1, sap2, sp, meta, or leav empty for everything"
+    exit
+fi
+
+#observation to be archived
+obs=$2
+echo "==========================="
+echo "Observation to be archived:$2"
+echo ""
+echo "The tarballs will be placed in:$prdir"
+echo ""
+
+#the path of the observation to be archived
+
+echo "Taping directory:$arcdir"
+echo "Taping:$arcswitch"
+
+#archiving date                                                                 
+arcdate=`date +%Y%m%d`
+
+#archiving time in UTC                                                          
+arctime=`date -u|awk '{print $4}'|sed 's/://g'`
+
+#current directory (the same level as the observation's directory)
+curdir=`pwd`
+
+#archiving 
+if [ "$3" == "sap0" ];then
+    cd $2
+    tar -cf $2"_SAP0-"$arcdate-$arctime.tar SAP0 
+    chown :lotaas $2"_SAP0-"$arcdate-$arctime.tar
+    chmod g+w $2"_SAP0-"$arcdate-$arctime.tar
+    tar -tvf $2"_SAP0-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP0-"$arcdate-$arctime.log
+    mv $2"_SAP0-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_SAP0-"$arcdate-$arctime.tar $arcdir/
+    fi
+elif [ "$3" == "sap1" ];then
+    cd $2
+    tar -cf $2"_SAP1-"$arcdate-$arctime.tar SAP1
+    chown :lotaas $2"_SAP1-"$arcdate-$arctime.tar
+    chmod g+w $2"_SAP1-"$arcdate-$arctime.tar
+    tar -tvf $2"_SAP1-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP1-"$arcdate-$arctime.log
+    mv $2"_SAP1-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_SAP1-"$arcdate-$arctime.tar $arcdir/
+    fi
+elif [ "$3" == "sap2" ];then
+    cd $2
+    tar -cf $2"_SAP2-"$arcdate-$arctime.tar SAP2
+    chown :lotaas $2"_SAP2-"$arcdate-$arctime.tar
+    chmod g+w $2"_SAP2-"$arcdate-$arctime.tar
+    tar -tvf $2"_SAP2-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP2-"$arcdate-$arctime.log
+    mv $2"_SAP2-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+    cp $prdir/$2"_SAP2-"$arcdate-$arctime.tar $arcdir/
+    fi
+elif [ "$3" == "sp" ];then
+    cd $2
+    tar -cf $2"_sp-"$arcdate-$arctime.tar sp
+    chown :lotaas $2"_sp-"$arcdate-$arctime.tar
+    chmod g+w $2"_sp-"$arcdate-$arctime.tar
+    tar -tvf $2"_sp-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_sp-"$arcdate-$arctime.log
+    mv $2"_sp-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_sp-"$arcdate-$arctime.tar $arcdir/
+    fi
+elif [ "$3" == "meta" ];then
+    echo "SAP0 SAP1 SAP2" >~/archiver_EXLIST.temp
+    cd $2
+    tar -X ~/archiver_EXLIST.temp -cf $2"_metadata-"$arcdate-$arctime.tar *
+    chown :lotaas $2"_metadata-"$arcdate-$arctime.tar
+    chmod g+w $2"_metadata-"$arcdate-$arctime.tar
+    tar -tvf $2"_metadata-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_metadata-"$arcdate-$arctime.log
+    mv $2"_metadata-"$arcdate-$arctime.tar $prdir
+    rm ~/archiver_EXLIST.temp
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_metadata-"$arcdate-$arctime.tar $arcdir/   
+    fi
+elif [ -z "$3" ];then
+    cd $2
+    tar -cf $2"_SAP0-"$arcdate-$arctime.tar SAP0
+    chown :lotaas $2"_SAP0-"$arcdate-$arctime.tar
+    chmod g+w $2"_SAP0-"$arcdate-$arctime.tar
+    tar -tvf $2"_SAP0-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP0-"$arcdate-$arctime.log
+    mv $2"_SAP0-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_SAP0-"$arcdate-$arctime.tar $arcdir/
+    fi
+    tar -cf $2"_SAP1-"$arcdate-$arctime.tar SAP1
+    chown :lotaas $2"_SAP1-"$arcdate-$arctime.tar
+    chmod g+w $2"_SAP1-"$arcdate-$arctime.tar
+    tar -tvf $2"_SAP1-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP1-"$arcdate-$arctime.log
+    mv $2"_SAP1-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_SAP1-"$arcdate-$arctime.tar $arcdir/
+    fi
+    tar -cf $2"_SAP2-"$arcdate-$arctime.tar SAP2
+    chown :lotaas $2"_SAP2-"$arcdate-$arctime.tar
+    chmod g+w $2"_SAP2-"$arcdate-$arctime.tar
+    tar -tvf $2"_SAP2-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP2-"$arcdate-$arctime.log
+    mv $2"_SAP2-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_SAP2-"$arcdate-$arctime.tar $arcdir/
+    fi
+    tar -cf $2"_sp-"$arcdate-$arctime.tar sp
+    chown :lotaas $2"_sp-"$arcdate-$arctime.tar
+    chmod g+w $2"_sp-"$arcdate-$arctime.tar
+    tar -tvf $2"_sp-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_sp-"$arcdate-$arctime.log
+    mv $2"_sp-"$arcdate-$arctime.tar $prdir
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_sp-"$arcdate-$arctime.tar $arcdir/
+    fi
+    echo "SAP0 SAP1 SAP2" >~/archiver_EXLIST.temp
+    tar -X ~/archiver_EXLIST.temp -cf $2"_metadata-"$arcdate-$arctime.tar *
+    chown :lotaas $2"_metadata-"$arcdate-$arctime.tar
+    chmod g+w $2"_metadata-"$arcdate-$arctime.tar
+    tar -tvf $2"_metadata-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_metadata-"$arcdate-$arctime.log
+    mv $2"_metadata-"$arcdate-$arctime.tar $prdir
+    rm ~/archiver_EXLIST.temp
+    if [ "$arcswitch" == "ON" ];then
+	cp $prdir/$2"_metadata-"$arcdate-$arctime.tar $arcdir/
+    fi
+else
+    echo "The third arguement of the script can be \"sap0\", \"sap1\", \"sap2\", \"sp\", \"meta\", or leave empty to archive everything"
+fi
+
