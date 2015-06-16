@@ -63,6 +63,15 @@ arctime=`date -u|awk '{print $4}'|sed 's/://g'`
 
 #current directory (the same level as the observation's directory)
 curdir=`pwd`
+#content of curdir
+curdircon=`ls $curdir`
+if [[ $curdircon == *$2* ]];then
+    echo "Archiving initiated..."
+    else
+    echo "This script must be executed in the same directory with the pointing to be archived."
+    echo "Either the pointing is not present or you are not in the same directory. Exiting..."
+    exit
+fi
 
 #archiving 
 if [ "$3" == "sap0" ];then
@@ -71,6 +80,7 @@ if [ "$3" == "sap0" ];then
     chown :lotaas $2"_SAP0-"$arcdate-$arctime.tar
     chmod g+w $2"_SAP0-"$arcdate-$arctime.tar
     tar -tvf $2"_SAP0-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP0-"$arcdate-$arctime.log
+    md5sum $2"_SAP0-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_SAP0-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_SAP0-"$arcdate-$arctime.tar $arcdir/
@@ -81,6 +91,7 @@ elif [ "$3" == "sap1" ];then
     chown :lotaas $2"_SAP1-"$arcdate-$arctime.tar
     chmod g+w $2"_SAP1-"$arcdate-$arctime.tar
     tar -tvf $2"_SAP1-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP1-"$arcdate-$arctime.log
+    md5sum $2"_SAP1-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_SAP1-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_SAP1-"$arcdate-$arctime.tar $arcdir/
@@ -91,6 +102,7 @@ elif [ "$3" == "sap2" ];then
     chown :lotaas $2"_SAP2-"$arcdate-$arctime.tar
     chmod g+w $2"_SAP2-"$arcdate-$arctime.tar
     tar -tvf $2"_SAP2-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP2-"$arcdate-$arctime.log
+    md5sum $2"_SAP2-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_SAP2-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
     cp $prdir/$2"_SAP2-"$arcdate-$arctime.tar $arcdir/
@@ -101,6 +113,7 @@ elif [ "$3" == "sp" ];then
     chown :lotaas $2"_sp-"$arcdate-$arctime.tar
     chmod g+w $2"_sp-"$arcdate-$arctime.tar
     tar -tvf $2"_sp-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_sp-"$arcdate-$arctime.log
+    md5sum $2"_sp-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_sp-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_sp-"$arcdate-$arctime.tar $arcdir/
@@ -112,6 +125,7 @@ elif [ "$3" == "meta" ];then
     chown :lotaas $2"_metadata-"$arcdate-$arctime.tar
     chmod g+w $2"_metadata-"$arcdate-$arctime.tar
     tar -tvf $2"_metadata-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_metadata-"$arcdate-$arctime.log
+    md5sum $2"_metadata-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_metadata-"$arcdate-$arctime.tar $prdir
     rm ~/archiver_EXLIST.temp
     if [ "$arcswitch" == "ON" ];then
@@ -123,6 +137,7 @@ elif [ -z "$3" ];then
     chown :lotaas $2"_SAP0-"$arcdate-$arctime.tar
     chmod g+w $2"_SAP0-"$arcdate-$arctime.tar
     tar -tvf $2"_SAP0-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP0-"$arcdate-$arctime.log
+    md5sum $2"_SAP0-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_SAP0-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_SAP0-"$arcdate-$arctime.tar $arcdir/
@@ -131,6 +146,7 @@ elif [ -z "$3" ];then
     chown :lotaas $2"_SAP1-"$arcdate-$arctime.tar
     chmod g+w $2"_SAP1-"$arcdate-$arctime.tar
     tar -tvf $2"_SAP1-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP1-"$arcdate-$arctime.log
+    md5sum $2"_SAP1-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_SAP1-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_SAP1-"$arcdate-$arctime.tar $arcdir/
@@ -139,6 +155,7 @@ elif [ -z "$3" ];then
     chown :lotaas $2"_SAP2-"$arcdate-$arctime.tar
     chmod g+w $2"_SAP2-"$arcdate-$arctime.tar
     tar -tvf $2"_SAP2-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_SAP2-"$arcdate-$arctime.log
+    md5sum $2"_SAP2-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_SAP2-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_SAP2-"$arcdate-$arctime.tar $arcdir/
@@ -147,6 +164,7 @@ elif [ -z "$3" ];then
     chown :lotaas $2"_sp-"$arcdate-$arctime.tar
     chmod g+w $2"_sp-"$arcdate-$arctime.tar
     tar -tvf $2"_sp-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_sp-"$arcdate-$arctime.log
+    md5sum $2"_sp-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslog
     mv $2"_sp-"$arcdate-$arctime.tar $prdir
     if [ "$arcswitch" == "ON" ];then
 	cp $prdir/$2"_sp-"$arcdate-$arctime.tar $arcdir/
@@ -156,6 +174,7 @@ elif [ -z "$3" ];then
     chown :lotaas $2"_metadata-"$arcdate-$arctime.tar
     chmod g+w $2"_metadata-"$arcdate-$arctime.tar
     tar -tvf $2"_metadata-"$arcdate-$arctime.tar >$prdir/TarLog/tar_$prefix$2"_metadata-"$arcdate-$arctime.log
+    md5sum $2"_metadata-"$arcdate-$arctime.tar >>$prdir/TarLog/mdsumslogmd5sum
     mv $2"_metadata-"$arcdate-$arctime.tar $prdir
     rm ~/archiver_EXLIST.temp
     if [ "$arcswitch" == "ON" ];then
