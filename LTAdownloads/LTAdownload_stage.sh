@@ -63,10 +63,10 @@ for ID in $IDS ; do
 	#fi
 	#let skip+=1
 	
-    done  < /home/sanidas/LTA_Downloads/${ID}srm.txt
+    done  < /home/sanidas/LTAdownloads/${ID}srm.txt
 
 
-    /home/sanidas/LTA_Downloads/parallelglobus.sh process_globus
+    /home/sanidas/LTAdownloads/parallelglobus.sh process_globus
     
     date
     waitForFinish '[g]'lobus
