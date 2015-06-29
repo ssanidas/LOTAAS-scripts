@@ -3,7 +3,7 @@
 #SBATCH -t 10:00:00
 #SBATCH -N 1
 #SBATCH -n 8
-#SBATCH --mail-user=sotiris.sanidas@gmail.com
+#SBATCH --mail-user=sally.cooper@postgrad.manchester.ac.uk
 
 # Verbose mode
 set -x
@@ -28,8 +28,8 @@ done
 }
 ####################################
 
-#probably obsolete? The proxy file is also in the same directory with the script btw
-#export_X509_USER_PROXY=/home/hessels/proxydir/proxyfile
+
+export_X509_USER_PROXY=./proxyfile
 
 
 
@@ -41,6 +41,8 @@ module load globus
 echo P4ls@rgrid | voms-proxy-init -pwstdin -valid 168:00 -dont-verify-ac -voms lofar:/lofar/user
 GSIDIR=gsiftp://gridftp.grid.sara.nl
 BASEDIR=/projects/0/lotaas/data/raw/
+#BASEDIR=/scratch/shared/sanidas/data/raw/
+
 
 for ID in $IDS ; do 
     i=0
@@ -56,7 +58,7 @@ for ID in $IDS ; do
 
 	#if (($skip >= 194 ))
 	#then
-	FILE=`echo $line | awk -F":8443/" '{print $2}' | awk '{print $1}'` 
+	FILE=`echo $line | awk -F:8443 '{print $2}' | awk '{print $1}'` 
         OUTFILE=`echo $line | awk -F/ '{print $15}'`
 	
 	echo "globus-url-copy -rst ${GSIDIR}${FILE} - | tar Bxp" >> process_globus
