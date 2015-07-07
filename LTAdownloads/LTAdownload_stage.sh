@@ -58,9 +58,9 @@ for ID in $IDS ; do
 
 	#if (($skip >= 194 ))
 	#then
-	FILE=`echo $line | awk -F:8443 '{print $2}' | awk '{print $1}'` 
+	FILE=`echo $line | awk -F":8443" '{print $2}' | awk '{print $1}'` 
         OUTFILE=`echo $line | awk -F/ '{print $15}'`
-#ATTENTION! In the case of old LOTAAS pipeline data (gz files) just add a "z" at Bxp	
+	
 	echo "globus-url-copy -rst ${GSIDIR}${FILE} - | tar Bxp" >> process_globus
 	#fi
 	#let skip+=1
