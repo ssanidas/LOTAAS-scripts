@@ -1,0 +1,47 @@
+#!/bin/bash                                                                     
+
+if [ $# -ne 1 ] ;then
+    echo "This script checks the raw data of a pointing for the (non)existence of fits files in the beams."
+    echo ""
+    echo "Usage:./rawchecker.scr <observation>"
+    echo "i.e. ./rawchecker.scr L1212121"
+    exit
+fi
+
+#raw data location
+rawloc=/projects/0/lotaas/data/raw
+
+#pointing
+pnt="$1"
+
+#SAP directories
+sapdirs="SAP0"
+
+cd $rawloc/$pnt"_red/stokes"
+
+for i in $sapdirs;do
+    cd $i
+    for j in `seq 1 127`;do
+	if [ -d "BEAM$j" ];then
+	    if [ ! -f "BEAM$j/$pnt""_$i""_BEAM$j.fits" ];then
+		echo "fits file $pnt/BEAM$j/$pnt""_$i""_BEAM$j.fits does not exist"
+	    fi
+	else
+	    echo "directory $i/BEAM$j does not exist"
+	fi    
+    done
+    echo `pwd`" checked"
+    cd ..
+done
+
+cd $rawloc/$pnt"_red/incoherentstokes/SAP0"
+
+        if [ -d "BEAM0" ];then
+            if [ ! -f "BEAM0/$pnt""_$i""_BEAM0.fits" ];then
+                echo "fits file $pnt/BEAM0/$pnt""_$i""_BEAM0.fits does not exist"
+            fi
+        else
+            echo "directory $i/BEAM0 does not exist"
+        fi
+echo `pwd`" checked"
+
