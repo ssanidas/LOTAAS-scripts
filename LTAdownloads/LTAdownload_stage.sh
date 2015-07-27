@@ -3,7 +3,7 @@
 #SBATCH -t 10:00:00
 #SBATCH -N 1
 #SBATCH -n 8
-#SBATCH --mail-user=sally.cooper@postgrad.manchester.ac.uk
+
 
 # Verbose mode
 set -x
@@ -31,7 +31,8 @@ done
 
 export_X509_USER_PROXY=./proxyfile
 
-
+#Get current directory
+scripthome=`pwd`
 
 # Read command line
 IDS="$@"
@@ -45,30 +46,35 @@ BASEDIR=/projects/0/lotaas/data/raw/
 
 
 for ID in $IDS ; do 
-    i=0
+#    i=0
     # Make dir
     LOCALDIR=${BASEDIR}/${ID}_red/
     mkdir -p ${LOCALDIR}
     cd ${LOCALDIR}
 
     rm process_globus
-    skip=0
+#    skip=0
     while read line
     do
-
 	#if (($skip >= 194 ))
 	#then
 	FILE=`echo $line | awk -F":8443" '{print $2}' | awk '{print $1}'` 
         OUTFILE=`echo $line | awk -F/ '{print $15}'`
-	
-	echo "globus-url-copy -rst ${GSIDIR}${FILE} - | tar Bxp" >> process_globus
+	SELECTOR=`echo $line|awk '{print $1}'|awk -F. '{print $NF}'`
+	if [ "$SELECTOR" = "tar" ];then
+	    echo "globus-url-copy -rst ${GSIDIR}${FILE} - | tar Bxp" >> process_globus
+	elif [ "$SELECTOR" = "gz" ];then
+	    echo "globus-url-copy -rst ${GSIDIR}${FILE} - | tar Bxpz" >> process_globus
+	else
+	    echo "No .tar or .gz extension found. Please investigate!"
+	fi
 	#fi
 	#let skip+=1
 	
-    done  < /home/sanidas/LTAdownloads/${ID}srm.txt
+    done  < $scripthome/${ID}srm.txt
 
 
-    /home/sanidas/LTAdownloads/parallelglobus.sh process_globus
+    $scripthome/parallelglobus.sh process_globus
     
     date
     waitForFinish '[g]'lobus
