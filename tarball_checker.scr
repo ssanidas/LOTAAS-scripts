@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================#
-#A simple script that checks which obsrvations in the archive  #
+#A simple script that checks which observations in the archive  #
 #are in offline state, calls the ones which are already present#
 #on cartesius, computes their md5 checksums and confirms that  #
 #the data have been archived uncorrupted. Then it removes the  #
@@ -60,7 +60,7 @@ echo "Done."
 
 
 #set the number of files (+1) which are going to be checked each time
-fileno=16 #mode2
+fileno=15 #mode2
 
 sed -i ''${fileno}',$d' ~/obs_tb_check #mode2
 sed -i ''${fileno}',$d' ~/conf_tb_check #mode2
