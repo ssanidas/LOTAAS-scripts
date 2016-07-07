@@ -1,0 +1,141 @@
+#!/bin/bash
+
+#==============================================================#
+#A simple script that checks which observations in the archive  #
+#are in offline state, calls the ones which are already present#
+#on cartesius, computes their md5 checksums and confirms that  #
+#the data have been archived uncorrupted. Then it removes the  #
+#tarballs from cartesius.                                      #
+#==============================================================#
+
+
+#path of the observations' archive
+ARCHIVE_OBS=/archive/pulsar/lotaas/out_tarballs
+
+#path of confirmations' archive
+ARCHIVE_CONF=/archive/pulsar/lotaas/confirmations_tarballs
+
+#path of observations' tarballs
+OBS=/projects/0/lotaas2/data/out/new_tarballs
+
+#path of confirmations' tarballs
+CONF=/projects/0/lotaas2/data/out/confirmations_tarballs
+
+#retrieve the archive contents
+#echo "Retrieving the tarball list in the archive (observations)..."
+dmls -l ${ARCHIVE_OBS} >~/obs_archive
+#echo "Done."
+#echo ""
+#echo "Retrieving the tarball list in the archive (confirmations)..."
+dmls -l ${ARCHIVE_CONF} >~/conf_archive
+#echo "Done."
+#echo ""
+
+#get the offline entries
+#echo "Creating the lists with the offline data..."
+cat ~/obs_archive |grep "(OFL)" >~/obs_archive_ofl
+cat ~/conf_archive |grep "(OFL)" >~/conf_archive_ofl
+#echo "Done."
+#echo ""
+
+#get the tarball lists on cartesius
+#echo "Creating the tarball lists on cartesius..."
+ls ${OBS} >~/obs_cartesius
+ls ${CONF} >~/conf_cartesius
+#echo "Done."
+#echo ""
+
+#check which tarballs on cartesius are offline on the archive
+#echo "Creating the common files lists..."
+grep -f ~/obs_cartesius ~/obs_archive_ofl |awk '{print $9}'>~/obs_tb_check
+grep -f ~/conf_cartesius ~/conf_archive_ofl |awk '{print $9}'>~/conf_tb_check
+#echo "Done."
+
+#The loops that check each file for corruption
+#MODIFICATION: The initial scripts dm-gets and checks each file consecutively.
+#In order to avoid putting lots of stress in the hardware, it has been 
+#modified so to get a user-defined number of files in batch and test them.
+#If you want to return to the initial script's mode, uncomment all lines
+#marked with mode1, and comment out the lines marked with mode2
+
+
+#set the number of files (+1) which are going to be checked each time
+fileno=15 #mode2
+
+sed -i ''${fileno}',$d' ~/obs_tb_check #mode2
+sed -i ''${fileno}',$d' ~/conf_tb_check #mode2
+
+obsfiles=`awk -vORS=" " '{print $1}' ~/obs_tb_check` #mode2
+conffiles=`awk -vORS=" " '{print $1}' ~/conf_tb_check` #mode2
+
+if [[ `cat ~/obs_tb_check|wc -l` == 0 ]] && [[ `cat ~/conf_tb_check|wc -l` == 0 ]];then
+    exit
+fi
+    
+
+
+cd ${ARCHIVE_CONF} #mode2
+dmget -a $conffiles #mode2
+
+#rm ~/mdchecksum_failed #cleaning previous records
+
+#echo "Working through the observations..."
+
+if [[ `cat ~/obs_tb_check|wc -l` != 0 ]];then
+
+cd ${ARCHIVE_OBS} #mode2
+dmget -a $obsfiles #mode2 
+
+cd ${OBS}
+for i in `cat ~/obs_tb_check`;do
+#    dmget -a ${ARCHIVE_OBS}/${i} #mode1
+    md5sum ${ARCHIVE_OBS}/${i} >~/mdchecksum
+    sed -i "s|${ARCHIVE_OBS}/||g" ~/mdchecksum
+    md5sum -c ~/mdchecksum 2>/dev/null
+    if [ $? -eq 0 ];then
+	rm ${i}
+#	echo "md5 checksum successful.Tarball removed."
+    else
+	echo "${ARCHIVE_OBS}/${i}" >>~/ARCHIVE_FAILED_MD5CHECKSUMS.txt
+#	echo "md5 checksum FAILED!Tarball name logged in ~/mdchecksum_failed"
+    fi
+done
+
+#echo "Observations check completed."
+#echo ""
+fi
+
+
+if [[ `cat ~/conf_tb_check|wc -l` == 0 ]];then
+#echo "Working through the confirmations..."
+cd ${ARCHIVE_CONF} #mode2
+dmget -a $conffiles #mode2
+
+cd ${CONF}
+for i in `cat ~/conf_tb_check`;do
+#    dmget -a ${ARCHIVE_CONF}/${i} #mode1
+    md5sum ${ARCHIVE_CONF}/${i} >~/mdchecksum
+    sed -i "s|${ARCHIVE_CONF}/||g" ~/mdchecksum
+    md5sum -c ~/mdchecksum 2>/dev/null
+    if [ $? -eq 0 ];then
+	rm ${i}
+#	echo "md5 checksum successful.Tarball removed"
+    else
+	echo "${ARCHIVE_CONF}/${i}" >>~/ARCHIVE_FAILED_MD5CHECKSUMS.txt
+#	echo "md5 checksum FAILED!Tarball name logged in ~/mdchecksum_failed"
+    fi
+done
+fi
+
+#echo "Over 'n out..."
+
+#cleaning up
+cd ~
+rm obs_archive 2>/dev/null
+rm conf_archive 2>/dev/null
+rm obs_archive_ofl 2>/dev/null
+rm conf_archive_ofl 2>/dev/null
+rm obs_cartesius 2>/dev/null
+rm conf_cartesius 2>/dev/null
+rm obs_tb_check 2>/dev/null
+rm conf_tb_check 2>/dev/null
