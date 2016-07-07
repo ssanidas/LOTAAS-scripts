@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#A simple script that extracts processed observations from the archive
+
+MODE=$1 #operation mode:obs or conf
+OBSID=$2 #obs id
+
+OUTOBSDIR=/projects/0/lotaas/data/out 
+OUTCONFDIR=/projects/0/lotaas/data/out/confirmations
+
+OBS_ARCHIVE=/archive/pulsar/lotaas/out_tarballs
+CONF_ARCHIVE=/archive/pulsar/lotaas/confirmations_tarballs
+
+if [ ${MODE} == "obs" ];then
+   cd ${OBS_ARCHIVE}
+   dmget -a ${OBSID}*.tar
+   mkdir ${OUTOBSDIR}/${OBSID}
+   cat ${OBSID}*.tar | tar -xf - -i -C ${OUTOBSDIR}/${OBSID}
+elif [ ${MODE} == "conf" ];then
+   cd ${CONF_ARCHIVE}
+   dmget -a confirmations_${OBSID}*.tar
+   mkdir ${OUTCONFDIR}/${OBSID}
+   cat confirmations_${OBSID}*.tar | tar -xf - -i -C ${OUTCONFDIR}/${OBSID}
+else 
+     echo "The first argument of extractor.scr (mode) must be either \"obs\" or \"conf\", i.e., ./extractor.scr obs L121212"
+     exit
+fi
+

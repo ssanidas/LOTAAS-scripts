@@ -1,0 +1,111 @@
+#!/bin/bash                                                                     
+
+if [ $# -ne 1 ] && [ $# -ne 2 ] && [ $# -ne 3 ];then
+   echo "This script checks the raw data of a pointing for the (non)existence of fits files in the beams."
+   echo ""
+   echo "Usage:./rawchecker.scr <mode> <observation> <era>"
+   echo "<mode> can be either \"obs\" or \"conf\""
+   echo "<observation> is the pointing name"
+   echo "<era> can be \"early\", for the first era of LOTAAS observations (67 TAB) or empty, for the present 73 TAB setup"
+   echo "i.e. ./rawchecker.scr obs L1212121 early"
+   exit
+fi
+
+#raw data location
+rawloc=/projects/0/lotaas2/data/raw
+
+#========script input========
+
+#mode
+mode=$1
+#pointing
+pnt=$2
+#LOTAAS era - "early" for 67 TABS, empty for 73
+era=$3
+
+
+if [ "$mode" == "obs" ];then
+    sapdirs="SAP0 SAP1 SAP2"
+    if [ "$era" == "" ];then
+	td0=0
+	td1=11
+	td2=13
+	td3=73
+	td5=12
+	sdir="stokes"
+	isdir="incoherentstokes"
+    elif [ "$era" == "early" ];then
+	td0=0
+	td1=5
+	td2=7
+	td3=67
+	td5=6
+	sdir="stokes"
+	isdir="stokes"
+    else 
+	echo "The third argument of the script must be eiter \"early\" or empty, i.e., ./rawchecker.scr obs L121212 early"
+	exit
+    fi
+elif [ "$mode" == "conf" ];then
+    sapdirs="SAP0"
+    td0=1
+    td1=60
+    td2=61 #arbitrary split for conformity reasons
+    td3=127
+    td5=0
+    sdir="stokes"
+    isdir="incoherentstokes"
+else 
+    echo "The first argument of the script must be either \"obs\" or \"conf\", i.e., ./rawchecker.scr obs L1212121"
+    exit
+fi
+
+
+cd $rawloc/$pnt"_red/"$sdir
+echo "Checking the coherent beams..."
+for i in $sapdirs;do
+    cd $i
+    echo "Checking $i""..."
+    for j in `seq $td0 $td1`;do
+	if [ -d "BEAM$j" ];then
+	    if [ ! -f "BEAM$j/$pnt""_$i""_BEAM$j.fits" ];then
+		echo "fits file $pnt/BEAM$j/$pnt""_$i""_BEAM$j.fits does not exist"
+	    elif [ `wc -c BEAM$j/*.fits|awk '{print $1}'` -lt 1000 ];then
+		echo "The size of the fits file in BEAM$j is too small."
+	    fi
+	else
+	    echo "directory $i/BEAM$j does not exist"
+	fi
+    done
+    for j in `seq $td2 $td3`;do
+        if [ -d "BEAM$j" ];then
+            if [ ! -f "BEAM$j/$pnt""_$i""_BEAM$j.fits" ];then
+                echo "fits file $pnt/BEAM$j/$pnt""_$i""_BEAM$j.fits does not exist"
+	    elif [ `wc -c BEAM$j/*.fits|awk '{print $1}'` -lt 1000 ];then
+		echo "The size of the fits file in BEAM$j is too small."
+            fi
+        else
+            echo "directory $i/BEAM$j does not exist"
+        fi
+    done
+    echo `pwd`" checked." 
+    cd ..
+done
+
+cd $rawloc/$pnt"_red/"$isdir
+echo "Checking the incoherent beams..."
+for i in $sapdirs;do
+    cd $i
+    echo "Checking $i""..."
+    if [ -d "BEAM$td5" ];then
+        if [ ! -f "BEAM$td5/$pnt""_$i""_BEAM$td5.fits" ];then
+            echo "fits file $pnt/BEAM$td5/$pnt""_$i""_BEAM$td5.fits does not exist"
+	elif [ `wc -c BEAM$td5/*.fits|awk '{print $1}'` -lt 1000 ];then
+	    echo "The size of the fits file in BEAM$td5 is too small."
+        fi
+    else
+	echo "directory $i/BEAM$td5 does not exist"
+    fi
+    echo `pwd`" checked."
+    cd ..
+done

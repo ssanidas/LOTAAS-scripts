@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#Dirty script that relocates the fits files of beam12 from the stokes directory to the incoherentstokes one
+
+#The pointing
+PNT=$1
+
+cd /projects/0/lotaas2/data/raw
+for i in {0..2};do
+mv ${PNT}_red/stokes/SAP${i}/BEAM12/*.fits ${PNT}_red/incoherentstokes/SAP${i}/BEAM12/
+done

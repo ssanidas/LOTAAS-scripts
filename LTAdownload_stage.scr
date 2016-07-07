@@ -1,0 +1,129 @@
+#!/bin/bash
+#SBATCH -p staging
+#SBATCH -t 24:00:00
+#SBATCH -n 8
+
+repository=/projects/0/lotaas2/software/LOTAAS-Scripts
+
+#default number of cores used (parallel downloads)
+
+MAXJOBS=8 #default value
+while getopts ":c:" opt;do
+    case $opt in
+        c)
+            MAXJOBS=$OPTARG
+            if [ "$MAXJOBS" \> "8" ] || [ "$MAXJOBS" \< "1" ];then
+                echo "Option $OPTARG not allowed. Must be an integer between 1 and 8."
+                exit
+            fi
+            ;;
+        \?)
+            echo "Invalid Option: -$OPTARG" >&2
+            echo "Currently allowed options: -t,c"
+            exit
+            ;;
+        :)
+            echo "Option -$OPTARG must have an argument"
+            exit
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+
+
+starttime=`date +%s`
+
+# Verbose mode
+set -x
+
+####################################
+# wait to parallel script to finish
+function waitForFinish()
+{
+    local STRING;
+
+    STRING=$1;
+
+    # wait until jobs have started
+    sleep 1
+
+    # check, twice, whether all done
+    for i in 1 2 ; do
+        job=99
+        while [ $job -gt 0 ] ; do sleep 1; top -b | head -n 40; job=`ps ax | grep ${STRING} | wc -l`; 
+done      
+    done
+}
+####################################
+
+
+export_X509_USER_PROXY=./proxyfile
+
+#Get current directory
+scripthome=`pwd`
+
+# Read command line
+IDS="$@"
+
+# Set up Grid credentials
+module load globus
+echo P4ls@rgrid | voms-proxy-init -pwstdin -valid 168:00 -dont-verify-ac -voms lofar:/lofar/user
+GSIDIR=gsiftp://gridftp.grid.sara.nl
+BASEDIR=/projects/0/lotaas2/data/raw/
+
+
+
+for ID in $IDS ; do 
+#    i=0
+    # Make dir
+    LOCALDIR=${BASEDIR}/${ID}_red/
+    mkdir -p ${LOCALDIR}
+    cd ${LOCALDIR}
+
+    rm process_globus
+#    skip=0
+    while read line
+    do
+	#if (($skip >= 194 ))
+	#then
+	FILE=`echo $line | awk -F":8443" '{print $2}' | awk '{print $1}'` 
+        OUTFILE=`echo $line | awk -F/ '{print $15}'`
+	SELECTOR=`echo $line|awk '{print $1}'|awk -F. '{print $NF}'`
+	if [ "$SELECTOR" = "tar" ];then
+	    echo "globus-url-copy -rst ${GSIDIR}${FILE} - | tar Bxp" >> process_globus
+	elif [ "$SELECTOR" = "gz" ];then
+	    echo "globus-url-copy -rst ${GSIDIR}${FILE} - | tar Bxpz" >> process_globus
+	else
+	    echo "No .tar or .gz extension found. Please investigate!"
+	fi
+	#fi
+	#let skip+=1
+	
+#	echo "Renaming the directory to the obs id"
+#	correctname=`ls /projects/0/lotaas/data/raw/$ID"_"red/*parset|awk -F/ '{print $NF}'|awk -F. '{print $1}'`
+#	mv $LOCALDIR $BASEDIR/$correctname"_red"
+#	echo "Directory renamed to $correctname""_red"
+
+    done  < $scripthome/${ID}srm.txt
+
+
+    $LOTAAS_PL/parallelglobusmod.sh -c $MAXJOBS process_globus
+    
+    date
+    waitForFinish '[g]'lobus
+    #waitForFinish globus
+
+done
+
+endtime=`date +%s`
+
+echo "Duration="$((endtime-starttime))"sec"
+
+echo""
+echo "Renaming the directory"
+cd ${BASEDIR}
+for ID in $IDS ; do
+    newname=`ls ${ID}_red/*.log|head -n1|awk -F/ '{print $2}'|awk -F_ '{print $1}'`
+    mv ${ID}_red ${newname}_red
+done

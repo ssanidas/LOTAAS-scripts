@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#Update script for the "LOTAAS ambiguous candidates" webpage
+
+repository=/projects/0/lotaas2/software/LOTAAS-Scripts
+
+#cat2cands directory
+DIR="/projects/0/lotaas2/data/out/cat2cands"
+
+cd ${DIR}
+
+#get the filenames and save them in the log
+FILES=`ls *.png`
+
+#scp the plots
+scp *.png ag004:/var/www/lofarpwg/lotaas/promising-candidates
+
+#create the spreadsheet entries
+
+for i in ${FILES};do
+    FNAME=`echo $i|awk -F. '{print $1}'`
+    echo ${FNAME} >>${DIR}/pnglist
+    python ${repository}/cat2cands.py -f $i
+done
+
+mv *.png on_ag004
