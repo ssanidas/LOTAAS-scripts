@@ -68,14 +68,7 @@ sed -i ''${fileno}',$d' ~/conf_tb_check #mode2
 obsfiles=`awk -vORS=" " '{print $1}' ~/obs_tb_check` #mode2
 conffiles=`awk -vORS=" " '{print $1}' ~/conf_tb_check` #mode2
 
-if [[ `cat ~/obs_tb_check|wc -l` == 0 ]] && [[ `cat ~/conf_tb_check|wc -l` == 0 ]];then
-    exit
-fi
-    
 
-
-cd ${ARCHIVE_CONF} #mode2
-dmget -a $conffiles #mode2
 
 #rm ~/mdchecksum_failed #cleaning previous records
 
@@ -91,7 +84,7 @@ for i in `cat ~/obs_tb_check`;do
 #    dmget -a ${ARCHIVE_OBS}/${i} #mode1
     md5sum ${ARCHIVE_OBS}/${i} >~/mdchecksum
     sed -i "s|${ARCHIVE_OBS}/||g" ~/mdchecksum
-    md5sum -c ~/mdchecksum 2>/dev/null
+    md5sum -c ~/mdchecksum >/dev/null 2>&1
     if [ $? -eq 0 ];then
 	rm ${i}
 #	echo "md5 checksum successful.Tarball removed."
@@ -106,7 +99,7 @@ done
 fi
 
 
-if [[ `cat ~/conf_tb_check|wc -l` == 0 ]];then
+if [[ `cat ~/conf_tb_check|wc -l` != 0 ]];then
 #echo "Working through the confirmations..."
 cd ${ARCHIVE_CONF} #mode2
 dmget -a $conffiles #mode2
@@ -116,7 +109,7 @@ for i in `cat ~/conf_tb_check`;do
 #    dmget -a ${ARCHIVE_CONF}/${i} #mode1
     md5sum ${ARCHIVE_CONF}/${i} >~/mdchecksum
     sed -i "s|${ARCHIVE_CONF}/||g" ~/mdchecksum
-    md5sum -c ~/mdchecksum 2>/dev/null
+    md5sum -c ~/mdchecksum >/dev/null 2>&1
     if [ $? -eq 0 ];then
 	rm ${i}
 #	echo "md5 checksum successful.Tarball removed"
