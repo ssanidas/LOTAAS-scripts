@@ -1,0 +1,6 @@
+#!/bin/bash
+
+/projects/0/lotaas2/software/LOTAAS-Scripts/./tarball_checker_auto.scr
+
+
+at now + 2 days -f /projects/0/lotaas2/software/LOTAAS-Scripts/repeater_2days.scr 
