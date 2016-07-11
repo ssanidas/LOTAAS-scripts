@@ -12,6 +12,7 @@ cd ${DIR}
 #get the filenames and save them in the log
 FILES=`ls *.png`
 
+if [[ `echo $FILES|wc -l` != 0 ]];then
 #scp the plots
 scp *.png ag004:/var/www/lofarpwg/lotaas/promising-candidates
 
@@ -24,3 +25,4 @@ for i in ${FILES};do
 done
 
 mv *.png on_ag004
+fi
