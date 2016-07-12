@@ -57,8 +57,14 @@ done
 #copy the directories for processing
 if [[ ${MODE} == "copy" ]];then
     if [ -z "$SOURCE" ];then
-	for i in ${OBSIDDIRS};do
-	    cp -r ${DSCVR}/${i} ${RAW}
+	for i in ${OBSIDS};do
+	    fullpath=`find ${DSCVR}/${i} -name "*.fits"`
+	    BEAM=`echo ${fullpath}|awk -F/ '{print $((NF-1))}'`
+            SAP=`echo ${fullpath}|awk -F/ '{print $((NF-2))}'`
+            CAT=`echo ${fullpath}|awk -F/ '{print $((NF-3))}'`
+            OBS=`echo ${fullpath}|awk -F/ '{print $((NF-4))}'`
+            mkdir -p ${RAW}/${OBS}/${CAT}/${SAP}/${BEAM}
+            cp ${fullpath} ${RAW}/${OBS}/${CAT}/${SAP}/${BEAM}
 	done
     else
 	fullpath=`find ${DSCVR}/${SOURCE} -name "*.fits"`
