@@ -7,14 +7,39 @@
 #jobs: creates the jobs script
 #process: runs the classifier and creates a txt file with the positives at the same level as the arff file
 
-MODE=$1
+
 
 #discoveries directory
-DSCVR=/projects/0/lotaas/data/raw/discoveries
+DSCVR=/projects/0/lotaas2/data/raw/discoveries
 #raw data directory
-RAW=/projects/0/lotaas/data/raw
+RAW=/projects/0/lotaas2/data/raw
 #processed results directory
-OUT=/projects/0/lotaas/data/out
+OUT=/projects/0/lotaas2/data/out
+
+while getopts ":s:" opt;do
+    case $opt in
+        s)
+            SOURCE=$OPTARG
+            if [ ! -d "$DSCVR/$SOURCE" ];then
+                echo "Directory $OPTARG cannot be found in $DSCVR" 
+                exit
+            fi
+            ;;
+        \?)
+            echo "Invalid Option: -$OPTARG" >&2
+            echo "Currently allowed options: -s"
+            exit
+            ;;
+        :)
+            echo "Option -$OPTARG must have an argument."
+            exit
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+#modus operandi
+MODE=$1
 
 #pick up all the discoveries (except a few)
 PSRLIST=`ls ${DSCVR}`
@@ -31,11 +56,23 @@ done
 
 #copy the directories for processing
 if [[ ${MODE} == "copy" ]];then
-for i in ${OBSIDDIRS};do
-    cp -r ${DSCVR}/${i} ${RAW}
-done
+    if [ -z "$SOURCE" ];then
+	for i in ${OBSIDDIRS};do
+	    cp -r ${DSCVR}/${i} ${RAW}
+	done
+    else
+	fullpath=`find ${DSCVR}/${SOURCE} -name "*.fits"`
+	BEAM=`echo ${fullpath}|awk -F/ '{print $((NF-1))}'`
+	SAP=`echo ${fullpath}|awk -F/ '{print $((NF-2))}'`
+	CAT=`echo ${fullpath}|awk -F/ '{print $((NF-3))}'`
+	OBS=`echo ${fullpath}|awk -F/ '{print $((NF-4))}'`
+	mkdir -p ${RAW}/${OBS}/${CAT}/${SAP}/${BEAM}
+	cp ${fullpath} ${RAW}/${OBS}/${CAT}/${SAP}/${BEAM}
+	#cp -r ${DSCVR}/${SOURCE}/L* ${RAW}
+    fi
 exit
 fi
+
 
 
 
@@ -118,5 +155,4 @@ if [[ ${MODE} == "delres" ]];then
     done  
 exit
 fi
-
 
