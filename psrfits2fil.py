@@ -90,14 +90,23 @@ def read_subint(fits,i_subint,nchan,nsamps, apply_weights=True, \
     data_wso = ((data * scales) + offsets) * weights
     return data_wso
 
+def ra_dec_mod(ra, dec):
+  """
+  Check that RA and DEC are valid and return the expected format.
+  Modified by Daniele Michilli
+  """
+  wrong_dec, new_dec = decj_mod(dec)
+  new_ra = raj_mod(ra, wrong_dec)
+  return new_ra, new_dec
 
-def raj_mod(ra):
+def raj_mod(ra, wrong_dec):
   """
   Check that ra (string) is modulo 24 hours, and return the value in the expected (float) format
   Modified by Daniele Michilli
   """
   ra_list = ra.split(':')
   ra_dec = abs(float(ra_list[0]))*3600. + float(ra_list[1])*60. + float(ra_list[2])
+  if wrong_dec: ra_dec += 12.*3600.
   if ra[0] == '-': ra_dec *= -1
   ra_dec_n = np.mod(ra_dec, 24.*3600.)
   h = int(ra_dec_n / 3600.)
@@ -105,6 +114,23 @@ def raj_mod(ra):
   s = ra_dec_n - h * 3600. - m * 60.
   src_raj = h*10000 + m*100 + s
   return src_raj
+
+def decj_mod(dec):
+  """
+  Check that dec (string) is smaller than 90 deg, and return the value in the expected (float) format
+  Modified by Daniele Michilli
+  """
+  wrong = False
+  dec_list = dec.split(':')
+  dec_dec = abs(float(dec_list[0]))*3600. + float(dec_list[1])*60. + float(dec_list[2])
+  if dec_dec > 3600.*90.: 
+    dec_dec = 180.*3600. - dec_dec
+    wrong = True
+  d = int(dec_dec / 3600.)
+  m = int((dec_dec - d * 3600.) / 60.)
+  s = dec_dec - d * 3600. - m * 60.
+  src_decj = d*10000 + m*100 + s
+  return wrong, src_decj
 
 
 def translate_header(fits_file):
@@ -131,8 +157,9 @@ def translate_header(fits_file):
     fil_header["pulsarcentric"] = 0 # whats pulsarcentric?
     fil_header["az_start"] = fits_file['SUBINT'].data[0]['TEL_AZ']
     fil_header["za_start"] = fits_file['SUBINT'].data[0]['TEL_ZEN']
-    fil_header["src_raj"] = raj_mod(fits_hdr['RA']) #OLD: float(fits_hdr['RA'].replace(':',''))
-    fil_header["src_dej"] = float(fits_hdr['DEC'].replace(':',''))
+    coordinates = ra_dec_mod(fits_hdr['RA'], fits_hdr['DEC'])
+    fil_header["src_raj"] = coordinates[0] #OLD: float(fits_hdr['RA'].replace(':',''))
+    fil_header["src_dej"] = coordinates[1] #OLD: float(fits_hdr['DEC'].replace(':',''))
     fil_header["tstart"] = fits_hdr['STT_IMJD'] + \
                            fits_hdr['STT_SMJD']/86400.0 + \
                            fits_hdr['STT_OFFS']/86400.0
