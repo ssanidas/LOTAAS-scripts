@@ -9,10 +9,13 @@ DIR="/projects/0/lotaas2/data/out/cat2cands"
 
 cd ${DIR}
 
-#get the filenames and save them in the log
+#get the file count
+NFILES=`ls *.png 2>/dev/null |wc -l`
+
+if [ $NFILES != 0 ];then
+#get the filenames
 FILES=`ls *.png`
 
-if [[ `echo $FILES|wc -l` != 0 ]];then
 #scp the plots
 scp *.png ag004:/var/www/lofarpwg/lotaas/promising-candidates
 
