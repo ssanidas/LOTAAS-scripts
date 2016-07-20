@@ -1,0 +1,39 @@
+#!/bin/bash
+
+#This script archives the pcands directory to tape
+
+ARCHIVE=/archive/pulsar/lotaas/pcands
+PCANDS=/projects/0/lotaas2/data/pcands
+PCANDSLOG=/home/sanidas/Archive/pcands_taped.txt
+
+#Get all the obsIDS in pcands - NOT confirmations (yet)
+
+cd $PCANDS
+ls|grep L >~/pcands_obsids
+
+#get the ones not on tape
+FORTAPING=`grep -vf ${PCANDSLOG} ~/pcands_obsids`
+
+#taping
+for i in ${FORTAPING};do
+    tar -cf ${i}.tar ${i}
+    mv ${i}.tar ${ARCHIVE}/
+    echo ${i} >>${PCANDSLOG}
+done
+
+#proceed to the confirmations
+cd ${PCANDS}/confirmations
+ls|grep L >~/pcands_obsids
+
+FORTAPING=`grep -vf ${PCANDSLOG} ~/pcands_obsids`
+
+for i in ${FORTAPING};do
+    tar -cf ${i}.tar ${i}
+    mv ${i}.tar ${ARCHIVE}/
+    echo ${i} >>${PCANDSLOG}
+done
+
+
+
+
+
