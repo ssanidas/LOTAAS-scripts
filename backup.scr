@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#Backup script for repeater
+
+#Archive directory
+ARCHIVE=/home/sanidas/Archive
+
+rsync -a /home/sanidas/src ${ARCHIVE}/
+tar -czf /${ARCHIVE}/TarLog.tar.gz -C /projects/0/lotaas2/data/out/ TarLog
+rsync -a /home/sanidas/pythonpackages ${ARCHIVE}
+rsync -a /home/sanidas/.bashrc ${ARCHIVE}
+rsync -a /home/sanidas/.globus  ${ARCHIVE}
+rsync -a /home/sanidas/.ssh ${ARCHIVE}
+rsync -a /projects/0/lotaas2/data/out/cat2cands ${ARCHIVE}
+rsync -a /projects/0/lotaas2/data/predictions ${ARCHIVE}
