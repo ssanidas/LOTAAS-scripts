@@ -127,12 +127,12 @@ time {
 	# Step 3
 	elif [ $num -gt $dmulim2s ]
 	    then
-	    numberOFdms=229
+	    numberOFdms=1011
 	    lodm=`echo "$dm2 + ($num-$dmulim2)*$dm2inc" | bc`
 	    dminc=$dm2inc
 	    ds=4
 	    nout=1848000
-	    let num=num+230
+	    let num=num+229
 	else
 	    # we shouldn't get here
 	    echo "Error -- we shouldn't get here"

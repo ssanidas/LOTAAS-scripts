@@ -3,4 +3,4 @@
 /projects/0/lotaas2/software/LOTAAS-Scripts/./tarball_checker_auto.scr
 /projects/0/lotaas2/software/LOTAAS-Scripts/./cat2cands.scr
 
-at now + 2 days -f /projects/0/lotaas2/software/LOTAAS-Scripts/repeater_2days.scr 
+at now + 1 day -f /projects/0/lotaas2/software/LOTAAS-Scripts/repeater_1day.scr 
