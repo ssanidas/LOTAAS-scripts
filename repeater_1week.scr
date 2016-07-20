@@ -1,0 +1,6 @@
+#!/bin/bash
+
+/projects/0/lotaas2/software/LOTAAS-Scripts/./pcands_archiver.scr
+/projects/0/lotaas2/software/LOTAAS-Scripts/./backup.scr
+
+at now + 1 week -f /projects/0/lotaas2/software/LOTAAS-Scripts/repeater_1week.scr 
