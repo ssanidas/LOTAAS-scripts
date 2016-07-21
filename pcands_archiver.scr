@@ -2,7 +2,7 @@
 
 #This script archives the pcands directory to tape
 
-ARCHIVE=/archive/pulsar/lotaas/pcands
+ARCHIVE=/archive/pulsar/lotaas/pcands_tarballs
 PCANDS=/projects/0/lotaas2/data/pcands
 PCANDSLOG=/home/sanidas/Archive/pcands_taped.txt
 
@@ -15,6 +15,7 @@ ls|grep L >~/pcands_obsids
 FORTAPING=`grep -vf ${PCANDSLOG} ~/pcands_obsids`
 
 #taping
+
 for i in ${FORTAPING};do
     tar -cf ${i}.tar ${i}
     mv ${i}.tar ${ARCHIVE}/
